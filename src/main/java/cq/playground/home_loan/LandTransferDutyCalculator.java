@@ -54,7 +54,7 @@ public interface LandTransferDutyCalculator extends SROCalculator {
         );
     }
 
-    static LandTransferDutyCalculatorResult calculate(Home home) {
+    static LandTransferDutyCalculatorResult stampDuty(Home home) {
         return calculate(
                 home.getPrice(),
                 home.getContractDate(),

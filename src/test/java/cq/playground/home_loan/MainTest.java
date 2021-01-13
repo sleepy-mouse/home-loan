@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 import static cq.playground.home_loan.LoanRepaymentCalculator.balanceAfterEachRepayment;
 import static cq.playground.home_loan.LoanRepaymentCalculator.interestPerRepayment;
@@ -12,8 +13,7 @@ import static cq.playground.home_loan.RepaymentSchedule.MONTHLY;
 
 @Slf4j
 public class MainTest {
-    private static final Home HOME1 = new Home("650000", 2021, 4, 1, ESTABLISHED_HOME);
-    private static final BigDecimal SAVINGS = new BigDecimal("255000");
+    private static final Home HOME1 = new Home("600000", 2021, 6, 1, ESTABLISHED_HOME);
 
     private static void delimiter(int counter, RepaymentSchedule repaymentSchedule) {
         System.out.printf("%3d *************************************************************************************************** %s%n", counter, repaymentSchedule.getDescription());
@@ -32,13 +32,14 @@ public class MainTest {
 
     @Test
     public void calculateRepayments() {
-        var savings = new BigDecimal("200000");
-        var annualInterestRate = "0.0435";
-        var eachRepayment = new BigDecimal("2305");
+        var savings = new BigDecimal("250000");
+        var annualInterestRate = "0.0230";
+        var repaymentAmount = new BigDecimal("2000");
         var repaymentSchedule = MONTHLY;
         var result = LandTransferDutyCalculator.stampDuty(HOME1);
         var stampDuty = result.getDuty();
         System.out.printf("Stamp duty: %s%n", stampDuty);
+        var repayments = new ArrayList<>(200);
         var loanAmount = HOME1.price.subtract(savings.subtract(stampDuty));
         var balanceAfterEachRepayment = loanAmount;
         var interestPerRepayment = BigDecimal.ZERO;
@@ -46,7 +47,8 @@ public class MainTest {
         while (balanceAfterEachRepayment.compareTo(BigDecimal.ZERO) > 0) {
             delimiter(++counter, repaymentSchedule);
             interestPerRepayment = interestPerRepayment(balanceAfterEachRepayment, annualInterestRate, repaymentSchedule);
-            balanceAfterEachRepayment = balanceAfterEachRepayment(balanceAfterEachRepayment, interestPerRepayment, eachRepayment);
+            repayments.add(new Repayment(balanceAfterEachRepayment, repaymentAmount, interestPerRepayment, repaymentSchedule));
+            balanceAfterEachRepayment = balanceAfterEachRepayment(balanceAfterEachRepayment, interestPerRepayment, repaymentAmount);
         }
         delimiter();
         System.out.printf("%6s: %d%n", "Years", counter / 12);

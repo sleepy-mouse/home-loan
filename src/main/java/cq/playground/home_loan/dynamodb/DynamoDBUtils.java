@@ -1,6 +1,7 @@
 package cq.playground.home_loan.dynamodb;
 
 import cq.playground.home_loan.Repayment;
+import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -12,7 +13,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -32,10 +32,15 @@ public class DynamoDBUtils {
                             .setter(RepaymentItem::setRepaymentItemId)
                             .tags(primaryPartitionKey()))
                     .build();
+    private final PropertiesReader propertiesReader;
 
-    public static void createTable(String tableName, String key) {
-        var dbClient = getDbClient();
-        try (var dbWaiter = dbClient.waiter()) {
+    public DynamoDBUtils(PropertiesReader propertiesReader) {
+        this.propertiesReader = propertiesReader;
+    }
+
+    public void createTable(String tableName, String key) {
+        try (var dbClient = getDbClient();
+             var dbWaiter = dbClient.waiter()) {
             var request = CreateTableRequest.builder()
                     .attributeDefinitions(AttributeDefinition.builder()
                             .attributeName(key)
@@ -61,34 +66,43 @@ public class DynamoDBUtils {
             var waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
             waiterResponse.matched().response().ifPresent(System.out::println);
             log.info("Table: {}", response.tableDescription().tableName());
-        } catch (DynamoDbException e) {
+        } catch (Exception e) {
             log.error("", e);
         }
     }
 
-    public static void save(Repayment repayment) {
-        var dbClient = getEnhancedDbClient();
-        var mappedTable = dbClient.table("RepaymentRecord", TABLE_SCHEMA_REPAYMENT);
-        var item = repayment.generateItem();
-        var enReq = PutItemEnhancedRequest.builder(RepaymentItem.class)
-                .item(item)
-                .build();
-        mappedTable.putItem(enReq);
+    public void save(Repayment repayment) {
+        try {
+            var dbClient = getEnhancedDbClient();
+            var mappedTable = dbClient.table("RepaymentRecord", TABLE_SCHEMA_REPAYMENT);
+            var item = repayment.generateItem();
+            var enReq = PutItemEnhancedRequest.builder(RepaymentItem.class)
+                    .item(item)
+                    .build();
+            mappedTable.putItem(enReq);
+        } catch (Exception e) {
+            log.error("", e);
+        }
     }
 
-    private static DynamoDbEnhancedClient getEnhancedDbClient() {
+    private DynamoDbEnhancedClient getEnhancedDbClient() {
         return DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(getDbClient())
                 .build();
     }
 
-    private static DynamoDbClient getDbClient() {
-        var endpoint = "http://localhost:8000";
-        var region = Region.US_EAST_1;
-        return DynamoDbClient.builder()
-                .region(region)
-                .endpointOverride(URI.create(endpoint))
-                .credentialsProvider(ProfileCredentialsProvider.create())
-                .build();
+    private DynamoDbClient getDbClient() {
+        var endpoint = propertiesReader.get("endpoint");
+        var region = propertiesReader.get("region");
+        var builder = DynamoDbClient.builder()
+                .region(Region.of(region))
+                .credentialsProvider(ProfileCredentialsProvider.create());
+        if (endpoint.isBlank()) {
+            return builder.build();
+        } else {
+            return builder
+                    .endpointOverride(URI.create(endpoint))
+                    .build();
+        }
     }
 }

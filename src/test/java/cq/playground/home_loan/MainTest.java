@@ -1,10 +1,13 @@
 package cq.playground.home_loan;
 
+import cq.playground.home_loan.dynamodb.DynamoDBUtils;
+import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 
 import static cq.playground.home_loan.LoanRepaymentCalculator.balanceAfterEachRepayment;
 import static cq.playground.home_loan.LoanRepaymentCalculator.interestPerRepayment;
@@ -39,7 +42,7 @@ public class MainTest {
         var result = LandTransferDutyCalculator.stampDuty(HOME1);
         var stampDuty = result.getDuty();
         System.out.printf("Stamp duty: %s%n", stampDuty);
-        var repayments = new ArrayList<>(200);
+        var repayments = new ArrayList<Repayment>(200);
         var loanAmount = HOME1.price.subtract(savings.subtract(stampDuty));
         var balanceAfterEachRepayment = loanAmount;
         var interestPerRepayment = BigDecimal.ZERO;
@@ -53,5 +56,11 @@ public class MainTest {
         delimiter();
         System.out.printf("%6s: %d%n", "Years", counter / 12);
         System.out.printf("%6s: %d%n", "Months", counter % 12);
+        save(repayments);
+    }
+
+    private void save(List<Repayment> repayments) {
+        var dbUtils = new DynamoDBUtils(new PropertiesReader());
+        repayments.forEach(dbUtils::save);
     }
 }

@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.net.URI;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class DynamoDBUtils {
                 .region(Region.of(region))
                 .credentialsProvider(ProfileCredentialsProvider.create());
         DynamoDbAsyncClient dbAsyncClient;
-        if (endpoint.isBlank()) {
+        if (StringUtils.isBlank(endpoint)) {
             dbAsyncClient = builder.build();
         } else {
             dbAsyncClient = builder
@@ -115,7 +116,7 @@ public class DynamoDBUtils {
                 .region(Region.of(region))
                 .credentialsProvider(ProfileCredentialsProvider.create());
         DynamoDbClient dbClient;
-        if (endpoint.isBlank()) {
+        if (StringUtils.isBlank(endpoint)) {
             dbClient = builder.build();
         } else {
             dbClient = builder

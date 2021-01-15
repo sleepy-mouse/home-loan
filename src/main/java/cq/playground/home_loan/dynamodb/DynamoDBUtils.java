@@ -1,12 +1,12 @@
 package cq.playground.home_loan.dynamodb;
 
-import cq.playground.home_loan.Home;
-import cq.playground.home_loan.Repayment;
+import cq.playground.home_loan.BaseDomain;
 import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -22,11 +22,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static cq.playground.home_loan.dynamodb.HomeItem.TABLE_NAME;
-import static cq.playground.home_loan.dynamodb.HomeItem.TABLE_SCHEMA_HOME;
-import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
-import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_SCHEMA_REPAYMENT;
-
 @Slf4j
 public class DynamoDBUtils {
     private final PropertiesReader propertiesReader;
@@ -35,10 +30,10 @@ public class DynamoDBUtils {
         this.propertiesReader = propertiesReader;
     }
 
-    public Stream<RepaymentItem> scan() {
+    public <S extends DynamoDbItem<S>> Stream<S> scan(String tableName, TableSchema<S> tableSchema) {
         try (var dbClient = getDbClient()) {
             var enhancedDbClient = getDbEnhancedClient(dbClient);
-            return enhancedDbClient.table(TABLE_REPAYMENT, TABLE_SCHEMA_REPAYMENT).scan().items().stream();
+            return enhancedDbClient.table(tableName, tableSchema).scan().items().stream();
         } catch (DynamoDbException e) {
             log.error(e.getMessage());
             return Stream.empty();
@@ -66,7 +61,6 @@ public class DynamoDBUtils {
             var tableRequest = DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build();
-
             var waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
             waiterResponse.matched().response().map(Objects::toString).ifPresent(log::info);
             log.info("Table: {}", res.tableDescription().tableName());
@@ -75,10 +69,11 @@ public class DynamoDBUtils {
         }
     }
 
-    public void save(Repayment repayment) {
+    public <D extends BaseDomain<S>, S extends DynamoDbItem<S>> void save(D domain) {
         try (var dbClient = getDbClient()) {
             var dbEnhancedClient = getDbEnhancedClient(dbClient);
-            dbEnhancedClient.table(TABLE_REPAYMENT, TABLE_SCHEMA_REPAYMENT).putItem(repayment.dynamoDbItem());
+            var item = domain.dynamoDbItem();
+            dbEnhancedClient.table(item.getTableName(), item.getTableSchema()).putItem(item);
         } catch (Exception e) {
             log.error("", e);
         }
@@ -128,14 +123,5 @@ public class DynamoDBUtils {
                     .build();
         }
         return dbClient;
-    }
-
-    public void save(Home home) {
-        try (var dbClient = getDbClient()) {
-            var dbEnhancedClient = getDbEnhancedClient(dbClient);
-            dbEnhancedClient.table(TABLE_NAME, TABLE_SCHEMA_HOME).putItem(home.dynamoDbItem());
-        } catch (Exception e) {
-            log.error("", e);
-        }
     }
 }

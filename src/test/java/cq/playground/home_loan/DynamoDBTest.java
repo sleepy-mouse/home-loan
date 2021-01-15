@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Objects;
 
 import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
+import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_SCHEMA_REPAYMENT;
 
 @Slf4j
 public class DynamoDBTest {
@@ -21,6 +22,6 @@ public class DynamoDBTest {
     @Test
     public void scan() {
         var dbUtils = new DynamoDBUtils(new PropertiesReader());
-        dbUtils.scan().map(Objects::toString).forEach(log::info);
+        dbUtils.scan(TABLE_REPAYMENT, TABLE_SCHEMA_REPAYMENT).map(Objects::toString).forEach(log::info);
     }
 }

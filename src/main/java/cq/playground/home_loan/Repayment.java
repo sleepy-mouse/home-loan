@@ -3,13 +3,15 @@ package cq.playground.home_loan;
 import com.fasterxml.uuid.Generators;
 import cq.playground.home_loan.dynamodb.RepaymentItem;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 
 @Slf4j
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class Repayment {
+public class Repayment extends BaseDomain<RepaymentItem> {
     final BigDecimal loanBalance;
     final BigDecimal repaymentAmount;
     final BigDecimal interestPaid;
@@ -41,6 +43,7 @@ public class Repayment {
         );
     }
 
+    @Override
     public RepaymentItem dynamoDbItem() {
         var uuid = Generators.randomBasedGenerator().generate();
         log.info("UUID: {}", uuid);

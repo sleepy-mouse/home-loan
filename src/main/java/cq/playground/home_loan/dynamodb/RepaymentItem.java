@@ -23,7 +23,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 @Data
 @EqualsAndHashCode(callSuper = false)
 @DynamoDbBean
-public class RepaymentItem extends DynamoDbItem {
+public class RepaymentItem extends DynamoDbItem<RepaymentItem> {
     public static final String TABLE_REPAYMENT = "Repayment";
     public static final String ATTRIBUTE_REPAYMENT_ID = "repaymentId";
     public static final String ATTRIBUTE_LOAN_BALANCE = "loanBalance";
@@ -146,5 +146,15 @@ public class RepaymentItem extends DynamoDbItem {
     @DynamoDbAttribute(ATTRIBUTE_PAID_AT)
     public LocalDateTime getPaidAt() {
         return paidAt;
+    }
+
+    @Override
+    public String getTableName() {
+        return TABLE_REPAYMENT;
+    }
+
+    @Override
+    public TableSchema<RepaymentItem> getTableSchema() {
+        return TABLE_SCHEMA_REPAYMENT;
     }
 }

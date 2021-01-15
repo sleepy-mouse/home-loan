@@ -21,7 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 @Data
 @EqualsAndHashCode(callSuper = false)
 @DynamoDbBean
-public class HomeItem extends DynamoDbItem {
+public class HomeItem extends DynamoDbItem<HomeItem> {
     public static final String TABLE_NAME = "Home";
     public static final String ATTRIBUTE_ADDRESS = "address";
     public static final String ATTRIBUTE_PRICE = "price";
@@ -86,5 +86,15 @@ public class HomeItem extends DynamoDbItem {
 
     public void setPrice(BigDecimal price) {
         this.price = round(price);
+    }
+
+    @Override
+    public String getTableName() {
+        return TABLE_NAME;
+    }
+
+    @Override
+    public TableSchema<HomeItem> getTableSchema() {
+        return TABLE_SCHEMA_HOME;
     }
 }

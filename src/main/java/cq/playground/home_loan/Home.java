@@ -2,6 +2,7 @@ package cq.playground.home_loan;
 
 import cq.playground.home_loan.dynamodb.HomeItem;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -9,7 +10,8 @@ import java.time.LocalDate;
 
 @Slf4j
 @Data
-public class Home {
+@EqualsAndHashCode(callSuper = false)
+public class Home extends BaseDomain<HomeItem> {
     final String address;
     final BigDecimal price;
     final LocalDate contractDate;
@@ -33,6 +35,7 @@ public class Home {
         return new Home(address, price, year, month, dayOfMonth, propertyEstablishmentType);
     }
 
+    @Override
     public HomeItem dynamoDbItem() {
         var item = new HomeItem();
         item.setAddress(getAddress());

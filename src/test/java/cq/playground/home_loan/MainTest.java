@@ -1,6 +1,7 @@
 package cq.playground.home_loan;
 
 import cq.playground.home_loan.dynamodb.DynamoDBUtils;
+import cq.playground.home_loan.dynamodb.RepaymentItem;
 import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ import static cq.playground.home_loan.RepaymentSchedule.MONTHLY;
 
 @Slf4j
 public class MainTest {
-    private static final Home HOME1 = new Home("600000", 2021, 6, 1, ESTABLISHED_HOME);
+    private static final Home HOME1 = new Home("780000", 2021, 6, 1, ESTABLISHED_HOME);
 
     private static void delimiter(int counter, RepaymentSchedule repaymentSchedule) {
         System.out.printf("%3d *************************************************************************************************** %s%n", counter, repaymentSchedule.getDescription());
@@ -50,7 +51,7 @@ public class MainTest {
         while (balanceAfterEachRepayment.compareTo(BigDecimal.ZERO) > 0) {
             delimiter(++counter, repaymentSchedule);
             interestPerRepayment = interestPerRepayment(balanceAfterEachRepayment, annualInterestRate, repaymentSchedule);
-            repayments.add(new Repayment(balanceAfterEachRepayment, repaymentAmount, interestPerRepayment, repaymentSchedule));
+            repayments.add(Repayment.build(balanceAfterEachRepayment, repaymentAmount, interestPerRepayment, repaymentSchedule));
             balanceAfterEachRepayment = balanceAfterEachRepayment(balanceAfterEachRepayment, interestPerRepayment, repaymentAmount);
         }
         delimiter();
@@ -61,6 +62,7 @@ public class MainTest {
 
     private void save(List<Repayment> repayments) {
         var dbUtils = new DynamoDBUtils(new PropertiesReader());
+        dbUtils.createTable("Repayment", RepaymentItem.ATTRIBUTE_REPAYMENT_ITEM_ID);
         repayments.forEach(dbUtils::save);
     }
 }

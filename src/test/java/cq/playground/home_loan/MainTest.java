@@ -1,6 +1,7 @@
 package cq.playground.home_loan;
 
 import cq.playground.home_loan.dynamodb.DynamoDBUtils;
+import cq.playground.home_loan.dynamodb.HomeItem;
 import cq.playground.home_loan.dynamodb.RepaymentItem;
 import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +15,11 @@ import static cq.playground.home_loan.LoanRepaymentCalculator.balanceAfterEachRe
 import static cq.playground.home_loan.LoanRepaymentCalculator.interestPerRepayment;
 import static cq.playground.home_loan.PropertyEstablishmentType.ESTABLISHED_HOME;
 import static cq.playground.home_loan.RepaymentSchedule.MONTHLY;
+import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
 
 @Slf4j
 public class MainTest {
-    private static final Home HOME1 = new Home("780000", 2021, 6, 1, ESTABLISHED_HOME);
+    private static final Home HOME_14_PEYTON_DRIVE = Home.build("14 Peyton Drive, Mill Park, VIC 3082", "780000", 2021, 6, 1, ESTABLISHED_HOME);
 
     private static void delimiter(int counter, RepaymentSchedule repaymentSchedule) {
         System.out.printf("%3d *************************************************************************************************** %s%n", counter, repaymentSchedule.getDescription());
@@ -28,8 +30,15 @@ public class MainTest {
     }
 
     @Test
+    public void addHome() {
+        var dbUtils = new DynamoDBUtils(new PropertiesReader());
+        dbUtils.createTable(HomeItem.TABLE_NAME, HomeItem.CREATE_TABLE_REQUEST);
+        dbUtils.save(HOME_14_PEYTON_DRIVE);
+    }
+
+    @Test
     public void estimateLandTransferDuty() {
-        var result = LandTransferDutyCalculator.stampDuty(HOME1);
+        var result = LandTransferDutyCalculator.stampDuty(HOME_14_PEYTON_DRIVE);
         log.info("reliefMessage: {}", result.getReliefMessage());
         log.info("duty: {}", result.getDuty());
     }
@@ -40,11 +49,11 @@ public class MainTest {
         var annualInterestRate = "0.0230";
         var repaymentAmount = new BigDecimal("2000");
         var repaymentSchedule = MONTHLY;
-        var result = LandTransferDutyCalculator.stampDuty(HOME1);
+        var result = LandTransferDutyCalculator.stampDuty(HOME_14_PEYTON_DRIVE);
         var stampDuty = result.getDuty();
         System.out.printf("Stamp duty: %s%n", stampDuty);
         var repayments = new ArrayList<Repayment>(200);
-        var loanAmount = HOME1.price.subtract(savings.subtract(stampDuty));
+        var loanAmount = HOME_14_PEYTON_DRIVE.price.subtract(savings.subtract(stampDuty));
         var balanceAfterEachRepayment = loanAmount;
         var interestPerRepayment = BigDecimal.ZERO;
         var counter = 0;
@@ -62,7 +71,7 @@ public class MainTest {
 
     private void save(List<Repayment> repayments) {
         var dbUtils = new DynamoDBUtils(new PropertiesReader());
-        dbUtils.createTable("Repayment", RepaymentItem.ATTRIBUTE_REPAYMENT_ITEM_ID);
+        dbUtils.createTable(TABLE_REPAYMENT, RepaymentItem.CREATE_TABLE_REQUEST);
         repayments.forEach(dbUtils::save);
     }
 }

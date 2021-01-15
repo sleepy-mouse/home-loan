@@ -2,23 +2,30 @@ package cq.playground.home_loan.dynamodb;
 
 import cq.playground.home_loan.RepaymentSchedule;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static java.math.MathContext.DECIMAL128;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @DynamoDbBean
-public class RepaymentItem {
+public class RepaymentItem extends DynamoDbItem {
     public static final String TABLE_REPAYMENT = "Repayment";
-    public static final String ATTRIBUTE_REPAYMENT_ITEM_ID = "repaymentItemId";
+    public static final String ATTRIBUTE_REPAYMENT_ID = "repaymentId";
     public static final String ATTRIBUTE_LOAN_BALANCE = "loanBalance";
     public static final String ATTRIBUTE_REPAYMENT_AMOUNT = "repaymentAmount";
     public static final String ATTRIBUTE_INTEREST_PAID = "interestPaid";
@@ -29,7 +36,7 @@ public class RepaymentItem {
     public static final TableSchema<RepaymentItem> TABLE_SCHEMA_REPAYMENT =
             StaticTableSchema.builder(RepaymentItem.class).newItemSupplier(RepaymentItem::new)
                     .addAttribute(String.class, a ->
-                            a.name(ATTRIBUTE_REPAYMENT_ITEM_ID)
+                            a.name(ATTRIBUTE_REPAYMENT_ID)
                                     .getter(RepaymentItem::getRepaymentItemId)
                                     .setter(RepaymentItem::setRepaymentItemId)
                                     .tags(primaryPartitionKey())
@@ -66,6 +73,22 @@ public class RepaymentItem {
                     )
                     .build();
 
+    public static final CreateTableRequest CREATE_TABLE_REQUEST = CreateTableRequest.builder()
+            .attributeDefinitions(AttributeDefinition.builder()
+                    .attributeName(ATTRIBUTE_REPAYMENT_ID)
+                    .attributeType(ScalarAttributeType.S)
+                    .build())
+            .keySchema(KeySchemaElement.builder()
+                    .attributeName(ATTRIBUTE_REPAYMENT_ID)
+                    .keyType(KeyType.HASH)
+                    .build())
+            .provisionedThroughput(ProvisionedThroughput.builder()
+                    .readCapacityUnits(10L)
+                    .writeCapacityUnits(10L)
+                    .build())
+            .tableName(TABLE_REPAYMENT)
+            .build();
+
     private String repaymentItemId;
     private BigDecimal loanBalance;
     private BigDecimal repaymentAmount;
@@ -73,10 +96,6 @@ public class RepaymentItem {
     private BigDecimal principalPaid;
     private RepaymentSchedule schedule;
     private LocalDateTime paidAt;
-
-    private static BigDecimal round(BigDecimal number) {
-        return number.round(DECIMAL128);
-    }
 
     @DynamoDbPartitionKey
     public String getRepaymentItemId() {

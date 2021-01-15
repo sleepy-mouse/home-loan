@@ -1,5 +1,6 @@
 package cq.playground.home_loan.dynamodb;
 
+import cq.playground.home_loan.Home;
 import cq.playground.home_loan.Repayment;
 import cq.playground.home_loan.util.PropertiesReader;
 import lombok.extern.slf4j.Slf4j;
@@ -9,16 +10,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
-import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.net.URI;
 import java.util.Map;
@@ -26,6 +22,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static cq.playground.home_loan.dynamodb.HomeItem.TABLE_NAME;
+import static cq.playground.home_loan.dynamodb.HomeItem.TABLE_SCHEMA_HOME;
 import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
 import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_SCHEMA_REPAYMENT;
 
@@ -61,31 +59,14 @@ public class DynamoDBUtils {
         }
     }
 
-    public void createTable(String tableName, String key) {
+    public void createTable(String tableName, CreateTableRequest createTableRequest) {
         try (var dbClient = getDbClient();
              var dbWaiter = dbClient.waiter()) {
-            var req = CreateTableRequest.builder()
-                    .attributeDefinitions(AttributeDefinition.builder()
-                            .attributeName(key)
-                            .attributeType(ScalarAttributeType.S)
-                            .build())
-                    .keySchema(KeySchemaElement.builder()
-                            .attributeName(key)
-                            .keyType(KeyType.HASH)
-                            .build())
-                    .provisionedThroughput(ProvisionedThroughput.builder()
-                            .readCapacityUnits(10L)
-                            .writeCapacityUnits(10L)
-                            .build())
-                    .tableName(tableName)
-                    .build();
-
-            var res = dbClient.createTable(req);
+            var res = dbClient.createTable(createTableRequest);
             var tableRequest = DescribeTableRequest.builder()
                     .tableName(tableName)
                     .build();
 
-            // Wait until the Amazon DynamoDB table is created
             var waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
             waiterResponse.matched().response().map(Objects::toString).ifPresent(log::info);
             log.info("Table: {}", res.tableDescription().tableName());
@@ -147,5 +128,14 @@ public class DynamoDBUtils {
                     .build();
         }
         return dbClient;
+    }
+
+    public void save(Home home) {
+        try (var dbClient = getDbClient()) {
+            var dbEnhancedClient = getDbEnhancedClient(dbClient);
+            dbEnhancedClient.table(TABLE_NAME, TABLE_SCHEMA_HOME).putItem(home.dynamoDbItem());
+        } catch (Exception e) {
+            log.error("", e);
+        }
     }
 }

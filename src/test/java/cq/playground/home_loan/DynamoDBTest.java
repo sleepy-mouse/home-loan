@@ -8,12 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
+import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
+
 @Slf4j
 public class DynamoDBTest {
     @Test
     public void createTable() {
         var dbUtils = new DynamoDBUtils(new PropertiesReader());
-        dbUtils.createTable("Repayment", RepaymentItem.ATTRIBUTE_REPAYMENT_ITEM_ID);
+        dbUtils.createTable(TABLE_REPAYMENT, RepaymentItem.CREATE_TABLE_REQUEST);
     }
 
     @Test

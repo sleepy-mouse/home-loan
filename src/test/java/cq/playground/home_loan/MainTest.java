@@ -51,9 +51,10 @@ public class MainTest {
         var repaymentSchedule = MONTHLY;
         var result = LandTransferDutyCalculator.stampDuty(HOME_14_PEYTON_DRIVE);
         var stampDuty = result.getDuty();
-        System.out.printf("Stamp duty: %s%n", stampDuty);
+        log.info(String.format("Stamp duty: %s", stampDuty));
         var repayments = new ArrayList<Repayment>(200);
         var loanAmount = HOME_14_PEYTON_DRIVE.price.subtract(savings.subtract(stampDuty));
+        log.info("Loan Amount: {}", loanAmount);
         var balanceAfterEachRepayment = loanAmount;
         var interestPerRepayment = BigDecimal.ZERO;
         var counter = 0;

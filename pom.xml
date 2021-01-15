@@ -19,6 +19,7 @@
         <logback.version>1.2.3</logback.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <aws.java.sdk.version>2.15.62</aws.java.sdk.version>
+        <java-uuid-generator.version>4.0.1</java-uuid-generator.version>
     </properties>
 
     <dependencies>
@@ -54,6 +55,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb-enhanced</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>${java-uuid-generator.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

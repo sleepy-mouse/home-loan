@@ -3,8 +3,11 @@ package cq.playground.home_loan;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.NumberFormat;
+
+import static java.math.BigDecimal.ONE;
+import static java.math.MathContext.DECIMAL128;
+import static java.math.RoundingMode.HALF_UP;
 
 @Slf4j
 public class LoanRepaymentCalculator {
@@ -17,7 +20,7 @@ public class LoanRepaymentCalculator {
     public static BigDecimal interestPerRepayment(BigDecimal loanAmount, String annualInterestRate, RepaymentSchedule schedule) {
         return new BigDecimal(annualInterestRate)
                 .multiply(loanAmount)
-                .divide(BigDecimal.valueOf(schedule.numberOfRepaymentsPerYear()), RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(schedule.numberOfRepaymentsPerYear()), HALF_UP);
     }
 
     public static BigDecimal balanceAfterEachRepayment(BigDecimal loanAmount, BigDecimal interestPerRepayment, BigDecimal repaymentAmount) {
@@ -29,5 +32,18 @@ public class LoanRepaymentCalculator {
 
     private static String table(Object... args) {
         return String.format("%18s | %-10s | %-15s | %-15s | %-15s", args);
+    }
+
+    public static BigDecimal repayment(
+            BigDecimal loanAmount,
+            String annualInterestRate,
+            RepaymentSchedule schedule,
+            int loanPeriodInYears
+    ) {
+        var n = loanPeriodInYears * schedule.numberOfRepaymentsPerYear();
+        var r = new BigDecimal(annualInterestRate).divide(BigDecimal.valueOf(schedule.numberOfRepaymentsPerYear()), DECIMAL128);
+        var pow = ONE.add(r).pow(n);
+        var D = pow.subtract(ONE).divide(r.multiply(pow), DECIMAL128);
+        return loanAmount.divide(D, HALF_UP);
     }
 }

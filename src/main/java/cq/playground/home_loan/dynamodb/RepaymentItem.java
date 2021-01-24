@@ -83,8 +83,8 @@ public class RepaymentItem extends DynamoDbItem<RepaymentItem> {
                     .keyType(KeyType.HASH)
                     .build())
             .provisionedThroughput(ProvisionedThroughput.builder()
-                    .readCapacityUnits(10L)
-                    .writeCapacityUnits(10L)
+                    .readCapacityUnits(5L)
+                    .writeCapacityUnits(5L)
                     .build())
             .tableName(TABLE_REPAYMENT)
             .build();

@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class DynamoDBUtils {
+public class DynamoDbUtils {
     private final PropertiesReader propertiesReader;
 
-    public DynamoDBUtils(PropertiesReader propertiesReader) {
+    public DynamoDbUtils(PropertiesReader propertiesReader) {
         this.propertiesReader = propertiesReader;
     }
 

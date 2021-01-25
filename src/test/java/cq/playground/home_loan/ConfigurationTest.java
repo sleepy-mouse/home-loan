@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Objects;
 
 @Slf4j
-public class PropertiesTest {
+public class ConfigurationTest {
     @Test
     public void readProps() {
         var r = new PropertiesReader();

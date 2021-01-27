@@ -46,4 +46,25 @@ public class LoanRepaymentCalculator {
         var D = pow.subtract(ONE).divide(r.multiply(pow), DECIMAL128);
         return loanAmount.divide(D, HALF_UP);
     }
+
+    public static BigDecimal dailyInterest(
+            String offsetBalance,
+            String loanAmount,
+            String annualInterestRate,
+            int year
+    ) {
+        return new BigDecimal(loanAmount).subtract(new BigDecimal(offsetBalance)).multiply(new BigDecimal(annualInterestRate)).divide(BigDecimal.valueOf(daysInYear(year)), 2, HALF_UP);
+    }
+
+    private static int daysInYear(int year) {
+        return leapYear(year) ? 366 : 365;
+    }
+
+    private static boolean leapYear(int year) {
+        if (year % 400 == 0)
+            return true;
+        if (year % 100 == 0)
+            return false;
+        return year % 4 == 0;
+    }
 }

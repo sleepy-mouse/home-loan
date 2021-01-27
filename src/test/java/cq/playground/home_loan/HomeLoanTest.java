@@ -11,10 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static cq.playground.home_loan.LandTransferDutyCalculator.stampDuty;
-import static cq.playground.home_loan.LoanRepaymentCalculator.balanceAfterEachRepayment;
-import static cq.playground.home_loan.LoanRepaymentCalculator.interestPerRepayment;
+import static cq.playground.home_loan.LoanRepaymentCalculator.*;
 import static cq.playground.home_loan.RepaymentSchedule.MONTHLY;
 import static cq.playground.home_loan.dynamodb.RepaymentItem.TABLE_REPAYMENT;
+import static java.math.BigDecimal.ZERO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 public class HomeLoanTest extends BaseTest {
@@ -43,9 +44,9 @@ public class HomeLoanTest extends BaseTest {
         var loanAmount = home.price.subtract(savings.subtract(stampDuty));
         log.info("Loan Amount: {}", loanAmount);
         var balanceAfterEachRepayment = loanAmount;
-        var interestPerRepayment = BigDecimal.ZERO;
+        var interestPerRepayment = ZERO;
         var counter = 0;
-        while (balanceAfterEachRepayment.compareTo(BigDecimal.ZERO) > 0) {
+        while (balanceAfterEachRepayment.compareTo(ZERO) > 0) {
             delimiter(++counter, repaymentSchedule);
             interestPerRepayment = interestPerRepayment(balanceAfterEachRepayment, annualInterestRate, repaymentSchedule);
             repayments.add(Repayment.build(balanceAfterEachRepayment, repaymentAmount, interestPerRepayment, repaymentSchedule));
@@ -61,5 +62,19 @@ public class HomeLoanTest extends BaseTest {
         var dbUtils = new DynamoDbUtils(new PropertiesReader());
         dbUtils.createTable(TABLE_REPAYMENT, RepaymentItem.CREATE_TABLE_REQUEST);
         repayments.forEach(dbUtils::save);
+    }
+
+    @Test
+    public void dailyInterestWithOffset() {
+        var principal = "500000";
+        var offsetBalance = "30000";
+        var annualInterestRate = "0.0299";
+        int year = 2021;
+        var dailyInterest = dailyInterest(offsetBalance, principal, annualInterestRate, year);
+        assertEquals(dailyInterest, new BigDecimal("38.50"));
+
+        offsetBalance = "0";
+        dailyInterest = dailyInterest(offsetBalance, principal, annualInterestRate, year);
+        assertEquals(dailyInterest, new BigDecimal("40.96"));
     }
 }

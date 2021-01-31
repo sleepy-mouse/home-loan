@@ -15,13 +15,15 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.utils.StringUtils;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toMap;
+import static software.amazon.awssdk.utils.StringUtils.isBlank;
 
 @Slf4j
 public class DynamoDbUtils {
@@ -48,8 +50,8 @@ public class DynamoDbUtils {
                     .key(Map.of(key, AttributeValue.builder().s(keyVal).build()))
                     .build();
             var returnedItem = dbAsyncClient.getItem(req).join().item().values();
-            var map = returnedItem.stream().collect(Collectors.toMap(AttributeValue::s, s -> s));
-            map.keySet().stream().map(sinKey -> String.format("%s: %s\n", sinKey, map.get(sinKey).toString())).forEach(log::info);
+            var map = returnedItem.stream().collect(toMap(AttributeValue::s, s -> s));
+            map.keySet().stream().map(sinKey -> format("%s: %s\n", sinKey, map.get(sinKey).toString())).forEach(log::info);
         } catch (DynamoDbException e) {
             log.error("", e);
         }
@@ -99,7 +101,7 @@ public class DynamoDbUtils {
                 .region(Region.of(region))
                 .credentialsProvider(ProfileCredentialsProvider.create());
         DynamoDbAsyncClient dbAsyncClient;
-        if (StringUtils.isBlank(endpoint)) {
+        if (isBlank(endpoint)) {
             dbAsyncClient = builder.build();
         } else {
             dbAsyncClient = builder
@@ -116,7 +118,7 @@ public class DynamoDbUtils {
                 .region(Region.of(region))
                 .credentialsProvider(ProfileCredentialsProvider.create());
         DynamoDbClient dbClient;
-        if (StringUtils.isBlank(endpoint)) {
+        if (isBlank(endpoint)) {
             dbClient = builder.build();
         } else {
             dbClient = builder

@@ -23,7 +23,8 @@ public class HomeLoanTest extends BaseTest {
     public void repayment() {
         var deposit = new BigDecimal("220000");
         var annualInterestRate = "0.023";
-        var loanAmount = HOME_16_WARBURTON_COURT.price.subtract(deposit);
+        var home = HOME_35_ROYCROFT_AVENUE;
+        var loanAmount = home.price.subtract(deposit);
         log.info("Loan Amount: {}", loanAmount);
         delimiter();
         var repayment = LoanRepaymentCalculator.repayment(loanAmount, annualInterestRate, MONTHLY, 30);
@@ -32,7 +33,7 @@ public class HomeLoanTest extends BaseTest {
 
     @Test
     public void calculateRepayments() {
-        var home = HOME_16_WARBURTON_COURT;
+        var home = HOME_35_ROYCROFT_AVENUE;
         var savings = new BigDecimal("250000");
         var annualInterestRate = "0.0230";
         var repaymentAmount = new BigDecimal("2000");

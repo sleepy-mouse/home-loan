@@ -40,7 +40,7 @@ public class StampDutyTest extends BaseTest {
 
     @Test
     public void estimateLandTransferDuty() {
-        var result = stampDuty(HOME_16_WARBURTON_COURT);
+        var result = stampDuty(HOME_35_ROYCROFT_AVENUE);
         log.info("reliefMessage: {}", result.getReliefMessage());
         log.info("duty: {}", result.getDuty());
     }

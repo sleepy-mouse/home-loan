@@ -10,6 +10,6 @@ public class HomeTest extends BaseTest {
     public void addHome() {
         var dbUtils = new DynamoDbUtils(new PropertiesReader());
         dbUtils.createTable(HomeItem.TABLE_NAME, HomeItem.CREATE_TABLE_REQUEST);
-        dbUtils.save(HOME_14_PEYTON_DRIVE);
+        dbUtils.save(HOME_35_ROYCROFT_AVENUE);
     }
 }

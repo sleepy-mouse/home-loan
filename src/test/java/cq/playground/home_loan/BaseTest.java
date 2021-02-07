@@ -6,8 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static cq.playground.home_loan.PropertyEstablishmentType.ESTABLISHED_HOME;
 
 public class BaseTest {
-    public static final Home HOME_35_ROYCROFT_AVENUE = Home.build("35 Roycroft Avenue, Mill Park, VIC 3082", "740000", 2021, 6, 1, ESTABLISHED_HOME);
-    public static final Home HOME_16_WARBURTON_COURT = Home.build("16 Warburton Court, Mill Park, VIC 3082", "720000", 2021, 6, 1, ESTABLISHED_HOME);
+    public static final Home HOME_35_ROYCROFT_AVENUE = Home.build("35 Roycroft Avenue, Mill Park, VIC 3082", "780000", 2021, 6, 1, ESTABLISHED_HOME);
     public static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
     public static void delimiter(int counter, RepaymentSchedule repaymentSchedule) {
